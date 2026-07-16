@@ -4,7 +4,11 @@ This document separates a fast mechanism PoC from a defensible paper benchmark. 
 
 ## Phase 0 — executable sanity check
 
-Run the deterministic synthetic matrix. Continue only if the full model improves mean pixel AUPRC and small-lesion Dice over `local_context` across at least three seeds without materially increasing healthy FPR. Also inspect the component checks: a win by the full model is not evidence for the halo if `core_halo` does not beat `wide_context`.
+Run the deterministic falsification matrix in
+[`FALSIFICATION_RUN.md`](FALSIFICATION_RUN.md). Continue with each component only
+if its own three-seed decision is supported. A full-model win is not evidence for
+the halo if `halo_h1` does not beat `ctx_r5`, and it is not evidence for anatomy
+unless the correct mirror also beats both matched anatomy controls.
 
 ## Phase 1 — low-friction real-data PoC
 
@@ -52,7 +56,7 @@ Report mean ± standard deviation. Primary endpoints are pixel AUPRC and calibra
 
 1. **Fixed target, context sweep:** radii 2, 3, 5, 7.
 2. **Fixed context, halo sweep:** halo widths 0, 1, 2.
-3. **Anatomy rule:** no mirror, correct mirror, randomly permuted mirror, and another subject's mirror.
+3. **Anatomy rule:** no mirror, correct mirror, a token-count-matched non-homologous same-subject region, and another subject's mirror.
 4. **Core-size sweep:** 1×1, 2×2, 4×4 tokens to expose JEPA's small-target failure mode.
 5. **Lesion size:** small/medium/large with bootstrap confidence intervals at patient level.
 6. **Registration stress:** controlled left–right shifts/rotations on healthy scans.

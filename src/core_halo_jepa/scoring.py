@@ -90,8 +90,14 @@ def geometry_kwargs(model_config: dict, score_config: dict) -> dict:
         "context_radius": int(model_config["context_radius"]),
         "include_contralateral": bool(model_config["include_contralateral"]),
         "contralateral_size": int(model_config["contralateral_size"]),
+        "anatomy_mode": model_config.get("anatomy_mode"),
+        "anatomy_seed": int(model_config.get("anatomy_seed", 0)),
         "stride": int(score_config["geometry_stride"]),
     }
+
+
+def uses_cross_subject_context(model_config: dict) -> bool:
+    return model_config.get("anatomy_mode") == "cross_subject_mirror"
 
 
 @torch.inference_mode()
@@ -108,6 +114,11 @@ def fit_calibrator(
     kwargs = geometry_kwargs(model_config, score_config)
     for batch in tqdm(loader, desc="Calibrating healthy residuals", leave=False):
         images = batch["image"].to(device, non_blocking=True)
+        cross_subject = uses_cross_subject_context(model_config)
+        if cross_subject and images.shape[0] < 2:
+            raise ValueError(
+                "cross_subject_mirror requires calibration batches with at least two subjects"
+            )
         foreground = patch_foreground(images, model.patch_size).cpu()
         grid_size = foreground.shape[-2:]
         if calibrator is None:
@@ -122,11 +133,20 @@ def fit_calibrator(
                 foreground=foreground[image_index],
                 **kwargs,
             )
-            source = images[image_index : image_index + 1]
+            if cross_subject:
+                donor_index = (image_index + 1) % images.shape[0]
+                source = torch.stack([images[image_index], images[donor_index]], dim=0)
+            else:
+                source = images[image_index : image_index + 1]
             for start in range(0, len(geometries), chunk_size):
                 chunk = geometries[start : start + chunk_size]
                 mapping = torch.zeros(len(chunk), dtype=torch.long, device=device)
-                output = model(source, chunk, mapping)
+                donors = (
+                    torch.ones(len(chunk), dtype=torch.long, device=device)
+                    if cross_subject
+                    else None
+                )
+                output = model(source, chunk, mapping, donors)
                 calibrator.update(output.residual, output.target_indices)
     if calibrator is None:
         raise RuntimeError("Calibration loader was empty")
@@ -141,6 +161,7 @@ def score_image(
     calibrator: ResidualCalibrator,
     model_config: dict,
     score_config: dict,
+    donor_image: torch.Tensor | None = None,
 ) -> torch.Tensor:
     """Return one pixel-level anomaly map with the same HxW as the input."""
 
@@ -150,6 +171,18 @@ def score_image(
         raise ValueError("score_image accepts exactly one image")
     device = next(model.parameters()).device
     image = image.to(device)
+    cross_subject = uses_cross_subject_context(model_config)
+    if cross_subject:
+        if donor_image is None:
+            raise ValueError("cross_subject_mirror scoring requires a donor_image")
+        if donor_image.ndim == 3:
+            donor_image = donor_image.unsqueeze(0)
+        donor_image = donor_image.to(device)
+        if donor_image.shape != image.shape:
+            raise ValueError("donor_image must have the same shape as image")
+        source_images = torch.cat([image, donor_image], dim=0)
+    else:
+        source_images = image
     foreground = patch_foreground(image, model.patch_size)[0]
     grid_size = tuple(int(value) for value in foreground.shape)
     geometries = enumerate_geometries(
@@ -164,7 +197,8 @@ def score_image(
     for start in range(0, len(geometries), chunk_size):
         chunk = geometries[start : start + chunk_size]
         mapping = torch.zeros(len(chunk), dtype=torch.long, device=device)
-        output = model(image, chunk, mapping)
+        donors = torch.ones(len(chunk), dtype=torch.long, device=device) if cross_subject else None
+        output = model(source_images, chunk, mapping, donors)
         token_scores = calibrator.score(output.residual, output.target_indices)
         flat_indices = output.target_indices.reshape(-1)
         score_sum.index_add_(0, flat_indices, token_scores.reshape(-1))

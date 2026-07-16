@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import math
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
@@ -11,6 +12,7 @@ import numpy as np
 
 from .config import load_config
 from .engine import run_evaluation, run_training
+from .falsification import run_falsification
 from .utils import dump_json
 
 
@@ -110,24 +112,31 @@ def run_poc(
             aggregate[name][f"{path}.mean"] = float(np.nanmean(values))
             aggregate[name][f"{path}.std"] = float(np.nanstd(values))
 
-    def greater(left: str, right: str, metric: str) -> bool:
-        if left not in aggregate or right not in aggregate:
+    def directional(left: str, right: str, metric: str, min_effect: float = 0.001) -> bool:
+        left_runs = {int(run["seed"]): run for run in grouped.get(left, [])}
+        right_runs = {int(run["seed"]): run for run in grouped.get(right, [])}
+        seeds = sorted(set(left_runs) & set(right_runs))
+        if not seeds:
             return False
-        return aggregate[left].get(f"{metric}.mean", -np.inf) > aggregate[right].get(
-            f"{metric}.mean", np.inf
+        differences = np.asarray(
+            [_metric(left_runs[seed], metric) - _metric(right_runs[seed], metric) for seed in seeds]
+        )
+        return bool(
+            differences.mean() >= min_effect
+            and int((differences > 0).sum()) >= math.ceil(len(seeds) * 2 / 3)
         )
 
     checks = {
-        "Wider target-free context improves pixel AUPRC over local context": greater(
+        "Wider target-free context improves pixel AUPRC over local context": directional(
             "wide_context", "local_context", "pixel_auprc"
         ),
-        "Adding a halo improves pixel AUPRC over the same wide context": greater(
+        "Adding a halo improves pixel AUPRC over the same wide context": directional(
             "core_halo", "wide_context", "pixel_auprc"
         ),
-        "Contralateral anatomy improves pixel AUPRC over Core-Halo alone": greater(
+        "Contralateral anatomy improves pixel AUPRC over Core-Halo alone": directional(
             "core_halo_anatomy", "core_halo", "pixel_auprc"
         ),
-        "Full model improves small-lesion Dice over local context": greater(
+        "Full model improves small-lesion Dice over local context": directional(
             "core_halo_anatomy", "local_context", "dice_by_lesion_size.small"
         ),
     }
@@ -165,6 +174,21 @@ def build_parser() -> argparse.ArgumentParser:
     poc.add_argument("--seeds", nargs="+", type=int, default=[0, 1, 2])
     poc.add_argument("--output-root", default="outputs/poc")
     poc.add_argument("--smoke", action="store_true")
+
+    falsification = subparsers.add_parser(
+        "run-falsification", help="Run context, halo, and anatomy-control sweeps"
+    )
+    falsification.add_argument("--base-config", default="configs/synthetic/falsification_base.yaml")
+    falsification.add_argument(
+        "--suite", choices=["all", "context", "halo", "anatomy"], default="all"
+    )
+    falsification.add_argument("--seeds", nargs="+", type=int, default=[0, 1, 2])
+    falsification.add_argument("--output-root", default="outputs/falsification")
+    falsification.add_argument("--bootstrap-samples", type=int, default=5000)
+    falsification.add_argument("--smoke", action="store_true")
+    falsification.add_argument(
+        "--rerun", action="store_true", help="Ignore completed metrics and rerun variants"
+    )
     return parser
 
 
@@ -178,9 +202,21 @@ def main() -> None:
         config = load_config(args.config, args.set)
         metrics = run_evaluation(config, args.checkpoint)
         print(json.dumps(metrics, indent=2))
-    else:
+    elif args.command == "run-poc":
         summary = run_poc(args.configs, args.seeds, args.output_root, args.smoke)
         print(json.dumps(summary["hypothesis_checks"], indent=2))
+    else:
+        base = load_config(args.base_config)
+        summary = run_falsification(
+            base_config=base,
+            seeds=args.seeds,
+            output_root=args.output_root,
+            suite=args.suite,
+            smoke=args.smoke,
+            skip_existing=not args.rerun,
+            bootstrap_samples=args.bootstrap_samples,
+        )
+        print(json.dumps(summary["comparisons"], indent=2))
 
 
 if __name__ == "__main__":

@@ -41,3 +41,19 @@ def test_ema_update_moves_target_toward_context() -> None:
         model.update_target_encoder(0.5)
         distance_after = (target_parameter - context_parameter).abs().mean()
     assert distance_after < distance_before
+
+
+def test_cross_subject_donor_affects_only_anatomy_tokens() -> None:
+    torch.manual_seed(4)
+    model = CoreHaloJEPA(tiny_config()).eval()
+    images = torch.stack([torch.zeros(1, 64, 64), torch.ones(1, 64, 64)])
+    none = make_geometry(2, 1, (8, 8), 2, 1, 3, False, 2, anatomy_mode="none")
+    mirror = make_geometry(2, 1, (8, 8), 2, 1, 3, True, 2, anatomy_mode="mirror")
+    source = torch.tensor([0])
+    donor = torch.tensor([1])
+    without_donor = model(images, [none], source).prediction
+    ignored_donor = model(images, [none], source, donor).prediction
+    assert torch.allclose(without_donor, ignored_donor)
+    same_subject = model(images, [mirror], source).prediction
+    cross_subject = model(images, [mirror], source, donor).prediction
+    assert not torch.allclose(same_subject, cross_subject)

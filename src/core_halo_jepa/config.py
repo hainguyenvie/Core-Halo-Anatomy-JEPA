@@ -37,6 +37,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "halo_size": 1,
         "context_radius": 5,
         "include_contralateral": True,
+        "anatomy_mode": None,
         "contralateral_size": 2,
     },
     "train": {
@@ -121,6 +122,10 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ValueError("model.halo_size must be >= 0")
     if int(model["context_radius"]) <= int(model["halo_size"]):
         raise ValueError("context_radius must be larger than halo_size")
+    anatomy_mode = model.get("anatomy_mode")
+    valid_modes = {None, "none", "mirror", "random_same_subject", "cross_subject_mirror"}
+    if anatomy_mode not in valid_modes:
+        raise ValueError(f"model.anatomy_mode must be one of {sorted(map(str, valid_modes))}")
     if data["kind"] not in {"synthetic", "slice_manifest"}:
         raise ValueError("data.kind must be 'synthetic' or 'slice_manifest'")
     if data["kind"] == "slice_manifest" and not data.get("manifest"):

@@ -21,8 +21,9 @@ jobs:
         run: pytest
       - name: CLI smoke experiment
         run: >-
-          core-halo-jepa run-poc
-          --configs configs/synthetic/local_context.yaml
+          core-halo-jepa run-falsification
+          --suite anatomy
           --seeds 0
-          --output-root /tmp/core-halo-smoke
+          --bootstrap-samples 100
+          --output-root /tmp/core-halo-falsification-smoke
           --smoke

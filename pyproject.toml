@@ -12,6 +12,7 @@ license = {text = "MIT"}
 authors = [{name = "Core-Halo Anatomy JEPA contributors"}]
 dependencies = [
   "numpy>=1.24",
+  "Pillow>=10.0",
   "PyYAML>=6.0",
   "scipy>=1.10",
   "scikit-learn>=1.3",

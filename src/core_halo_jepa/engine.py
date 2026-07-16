@@ -13,7 +13,7 @@ from tqdm import tqdm
 from .config import save_resolved_config
 from .data import build_dataloaders
 from .geometry import patch_foreground, sample_geometries
-from .metrics import compute_metrics, threshold_from_healthy
+from .metrics import compute_metrics, compute_per_image_metrics, threshold_from_healthy
 from .model import CoreHaloJEPA, JepaOutput, build_model
 from .scoring import ResidualCalibrator, fit_calibrator, score_image
 from .utils import (
@@ -24,6 +24,7 @@ from .utils import (
     resolve_device,
     seed_everything,
 )
+from .visualization import save_qualitative_grid
 
 
 def jepa_loss(output: JepaOutput, cosine_weight: float) -> tuple[torch.Tensor, dict[str, float]]:
@@ -47,7 +48,19 @@ def _geometry_args(model_config: dict) -> dict[str, Any]:
         "context_radius": int(model_config["context_radius"]),
         "include_contralateral": bool(model_config["include_contralateral"]),
         "contralateral_size": int(model_config["contralateral_size"]),
+        "anatomy_mode": model_config.get("anatomy_mode"),
+        "anatomy_seed": int(model_config.get("anatomy_seed", 0)),
     }
+
+
+def _donor_indices(
+    image_indices: torch.Tensor, batch_size: int, model_config: dict
+) -> torch.Tensor | None:
+    if model_config.get("anatomy_mode") != "cross_subject_mirror":
+        return None
+    if batch_size < 2:
+        raise ValueError("cross_subject_mirror requires batches with at least two subjects")
+    return (image_indices + 1) % batch_size
 
 
 @torch.inference_mode()
@@ -72,7 +85,8 @@ def latent_validation_loss(
             generator=generator,
             **_geometry_args(config["model"]),
         )
-        output = model(images, geometries, image_indices)
+        donors = _donor_indices(image_indices, images.shape[0], config["model"])
+        output = model(images, geometries, image_indices, donors)
         loss, _ = jepa_loss(output, float(config["train"]["cosine_loss_weight"]))
         values.append(float(loss))
     model.train()
@@ -162,7 +176,8 @@ def run_training(config: dict, resume: str | Path | None = None) -> Path:
                 group["lr"] = learning_rate
             optimizer.zero_grad(set_to_none=True)
             with torch.autocast(device_type=device.type, enabled=amp_enabled):
-                output = model(images, geometries, image_indices)
+                donors = _donor_indices(image_indices, images.shape[0], config["model"])
+                output = model(images, geometries, image_indices, donors)
                 loss, diagnostics = jepa_loss(output, float(config["train"]["cosine_loss_weight"]))
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
@@ -230,14 +245,21 @@ def _collect_maps(
     sample_ids: list[str] = []
     for batch in tqdm(loader, desc=description, leave=False):
         images = batch["image"]
+        cross_subject = config["model"].get("anatomy_mode") == "cross_subject_mirror"
+        if cross_subject and images.shape[0] < 2:
+            raise ValueError(
+                "cross_subject_mirror requires evaluation batches with at least two subjects"
+            )
         for index in range(images.shape[0]):
             image = images[index]
+            donor = images[(index + 1) % images.shape[0]] if cross_subject else None
             score = score_image(
                 model,
                 image,
                 calibrator,
                 config["model"],
                 config["score"],
+                donor_image=donor,
             ).numpy()
             image_np = image[0].numpy()
             scores.append(score)
@@ -303,6 +325,16 @@ def run_evaluation(config: dict, checkpoint: str | Path) -> dict[str, Any]:
         }
     )
     dump_json(metrics, output_dir / "metrics.json")
+    per_image = compute_per_image_metrics(
+        score_maps=test[0],
+        lesion_masks=test[1],
+        brain_masks=test[2],
+        lesion_sizes=test[4],
+        sample_ids=test[5],
+        threshold=threshold,
+        image_score_percentile=float(config["score"]["image_score_percentile"]),
+    )
+    dump_json(per_image, output_dir / "per_image_metrics.json")
 
     example_count = min(int(config["score"].get("save_examples", 0)), len(test[0]))
     if example_count:
@@ -312,5 +344,13 @@ def run_evaluation(config: dict, checkpoint: str | Path) -> dict[str, Any]:
             masks=np.stack(test[1][:example_count]),
             scores=np.stack(test[0][:example_count]),
             sample_ids=np.asarray(test[5][:example_count]),
+        )
+        save_qualitative_grid(
+            images=test[3],
+            masks=test[1],
+            scores=test[0],
+            sample_ids=test[5],
+            path=output_dir / "qualitative_grid.png",
+            max_examples=example_count,
         )
     return metrics

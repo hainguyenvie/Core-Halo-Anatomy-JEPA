@@ -24,6 +24,7 @@ model:
   halo_size: 1
   context_radius: 6
   include_contralateral: true
+  anatomy_mode: mirror
   contralateral_size: 2
 
 train:

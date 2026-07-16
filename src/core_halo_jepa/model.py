@@ -216,6 +216,7 @@ class CoreHaloJEPA(nn.Module):
         images: torch.Tensor,
         geometries: list[Geometry],
         image_indices: torch.Tensor | None = None,
+        donor_indices: torch.Tensor | None = None,
     ) -> JepaOutput:
         if image_indices is None:
             if images.shape[0] != len(geometries):
@@ -227,12 +228,24 @@ class CoreHaloJEPA(nn.Module):
                 raise ValueError("image_indices must map every geometry to one source image")
             if int(image_indices.max()) >= images.shape[0] or int(image_indices.min()) < 0:
                 raise ValueError("image_indices contains an out-of-range source image")
+        if donor_indices is not None:
+            donor_indices = donor_indices.to(images.device)
+            if donor_indices.shape != image_indices.shape:
+                raise ValueError("donor_indices must map every geometry to one donor image")
+            if int(donor_indices.max()) >= images.shape[0] or int(donor_indices.min()) < 0:
+                raise ValueError("donor_indices contains an out-of-range source image")
         target_indices, context_indices, context_types, padding = pack_geometries(
             geometries, images.device
         )
         all_context_tokens, grid_size = self.context_encoder.patch_tokens(images)
-        geometry_context_tokens = all_context_tokens[image_indices]
-        context = gather_tokens(geometry_context_tokens, context_indices)
+        context_sources = image_indices[:, None].expand_as(context_indices)
+        if donor_indices is not None:
+            context_sources = torch.where(
+                context_types == 1,
+                donor_indices[:, None].expand_as(context_indices),
+                context_sources,
+            )
+        context = all_context_tokens[context_sources, context_indices]
         context = self.context_encoder.encode_visible_tokens(context, padding)
         context = context + self.context_type_embedding(context_types)
         prediction = self.predictor(context, padding, target_indices, grid_size)

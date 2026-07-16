@@ -115,3 +115,64 @@ def compute_metrics(
         "n_images": int(len(score_maps)),
         "n_anomalous_images": int(image_labels.sum()),
     }
+
+
+def compute_per_image_metrics(
+    score_maps: list[np.ndarray],
+    lesion_masks: list[np.ndarray],
+    brain_masks: list[np.ndarray],
+    lesion_sizes: list[str],
+    sample_ids: list[str],
+    threshold: float,
+    image_score_percentile: float,
+) -> list[dict]:
+    """Return paired, sample-addressable metrics for bootstrap comparisons."""
+
+    if not (
+        len(score_maps)
+        == len(lesion_masks)
+        == len(brain_masks)
+        == len(lesion_sizes)
+        == len(sample_ids)
+    ):
+        raise ValueError("Per-image metric inputs must have equal lengths")
+    rows = []
+    for score, lesion, brain, size, sample_id in zip(
+        score_maps,
+        lesion_masks,
+        brain_masks,
+        lesion_sizes,
+        sample_ids,
+        strict=True,
+    ):
+        roi = brain.astype(bool)
+        labels = lesion[roi].astype(np.uint8)
+        values = score[roi].astype(np.float64)
+        prediction = values >= threshold
+        is_anomaly = bool(labels.any())
+        true_positive = int(np.logical_and(prediction, labels.astype(bool)).sum())
+        recall = float(true_positive / labels.sum()) if is_anomaly else None
+        auprc = _safe_auprc(labels, values) if is_anomaly else None
+        auroc = _safe_auc(labels, values) if is_anomaly and np.unique(labels).size == 2 else None
+        rows.append(
+            {
+                "sample_id": sample_id,
+                "lesion_size": size,
+                "is_anomaly": is_anomaly,
+                "brain_pixels": int(roi.sum()),
+                "lesion_pixels": int(labels.sum()),
+                "image_score": (
+                    float(np.percentile(values, image_score_percentile))
+                    if values.size
+                    else float(score.max())
+                ),
+                "pixel_auprc": float(auprc) if auprc is not None else None,
+                "pixel_auroc": float(auroc) if auroc is not None else None,
+                "dice_calibrated": (
+                    dice_at_threshold(labels, values, threshold) if is_anomaly else None
+                ),
+                "lesion_recall": recall,
+                "healthy_pixel_fpr": float(prediction.mean()) if not is_anomaly else None,
+            }
+        )
+    return rows

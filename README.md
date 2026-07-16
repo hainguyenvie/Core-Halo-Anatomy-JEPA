@@ -10,7 +10,7 @@ Patch-localization methods face a coupled scale choice: a small patch gives prec
 
 > Holding the target core fixed, larger target-free context should make healthy latent targets more predictable; a halo should reduce local leakage; and contralateral homologous context should improve localization when anatomy is approximately symmetric.
 
-The code tests each clause separately:
+The legacy four-row matrix tests each clause separately:
 
 | Experiment | Core | Context radius | Halo | Contralateral rule | Isolates |
 |---|---:|---:|---:|---:|---|
@@ -49,23 +49,44 @@ pytest
 Run a tiny end-to-end smoke experiment (it checks plumbing, not the hypothesis):
 
 ```bash
-python scripts/run_synthetic_poc.py --smoke --seeds 0
+python scripts/run_falsification.py \
+  --suite all \
+  --smoke \
+  --seeds 0 \
+  --output-root outputs/falsification_smoke
 ```
 
-Run the actual synthetic mechanism test with three seeds:
+Run the actual synthetic falsification study with three seeds:
+
+```bash
+python scripts/run_falsification.py \
+  --suite all \
+  --seeds 0 1 2 \
+  --output-root outputs/falsification
+```
+
+This runs 10 unique variants: five context radii, two nonzero halo widths, the
+correct within-image mirror, a token-count-matched non-homologous control, and a
+mirror-coordinate donor from another synthetic subject. The aggregate table,
+paired bootstrap intervals, and joint component decisions are written to:
+
+```text
+outputs/falsification/falsification_summary.md
+outputs/falsification/falsification_summary.json
+```
+
+Runs resume completed, configuration-compatible variants by default. Use `--rerun`
+only when you intentionally want to overwrite a run. One- or two-seed runs are
+always labeled `insufficient_seeds` and must not be interpreted as evidence.
+
+See [docs/FALSIFICATION_RUN.md](docs/FALSIFICATION_RUN.md) for staged commands,
+expected outputs, decision rules, and the lightweight result package to commit.
+
+The original four-row command remains available for backward compatibility:
 
 ```bash
 python scripts/run_synthetic_poc.py --seeds 0 1 2
 ```
-
-The aggregate table and four directional pass/fail checks are written to:
-
-```text
-outputs/poc/poc_summary.md
-outputs/poc/poc_summary.json
-```
-
-Do not interpret a one-seed win. The default protocol treats a failed directional check as falsification under this setup, not as a result to tune away.
 
 ## Train and evaluate one configuration
 
@@ -80,7 +101,9 @@ core-halo-jepa evaluate \
   --checkpoint outputs/core_halo_anatomy/best.pt
 ```
 
-Outputs include the resolved configuration, training history, best/last checkpoint, healthy residual calibrator, quantitative metrics, and a small compressed qualitative sample. Data, model weights, and outputs are ignored by Git.
+Outputs include the resolved configuration, training history, best/last checkpoint,
+healthy residual calibrator, aggregate and per-image metrics, a compressed sample,
+and `qualitative_grid.png`. Data, model weights, and outputs are ignored by Git.
 
 ## Real MRI data contract
 
@@ -116,6 +139,7 @@ Primary metrics are pixel AUPRC and pixel AUROC inside the nonzero brain region.
 - Dice at a threshold fixed from healthy calibration data (primary Dice);
 - oracle/test-set Dice only as a clearly labeled secondary diagnostic;
 - image AUROC, healthy pixel false-positive rate, and Dice by lesion size;
+- paired per-image bootstrap confidence intervals for every causal comparison;
 - latent variance diagnostics to reveal representation collapse.
 
 ## What this PoC does and does not establish
