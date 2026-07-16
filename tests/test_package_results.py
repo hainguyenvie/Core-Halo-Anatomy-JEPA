@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from scripts.package_results import package_results
+from core_halo_jepa.result_packaging import package_results
 
 
 def test_package_results_excludes_large_artifacts(tmp_path: Path) -> None:
