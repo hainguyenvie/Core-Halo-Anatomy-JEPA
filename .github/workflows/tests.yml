@@ -1,0 +1,28 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install package
+        run: pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check .
+      - name: Test
+        run: pytest
+      - name: CLI smoke experiment
+        run: >-
+          core-halo-jepa run-poc
+          --configs configs/synthetic/local_context.yaml
+          --seeds 0
+          --output-root /tmp/core-halo-smoke
+          --smoke
