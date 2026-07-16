@@ -1,0 +1,7 @@
+{
+  "best_validation_loss": 0.004849344491958618,
+  "device": "cuda",
+  "epochs": 20,
+  "global_step": 640,
+  "seconds": 80.75663232803345
+}

@@ -1,0 +1,21 @@
+{
+  "calibrated_threshold": 2.5053703784942627,
+  "checkpoint": "outputs/poc/core_halo_anatomy/seed_0/best.pt",
+  "device": "cuda",
+  "dice_by_lesion_size": {
+    "large": 0.8199944537313374,
+    "medium": 0.7741883600923166,
+    "small": 0.524194045047489
+  },
+  "dice_calibrated": 0.7361284270770254,
+  "dice_oracle": 0.763985372286192,
+  "experiment": "core_halo_anatomy",
+  "healthy_pixel_fpr": 0.005976893769663175,
+  "image_auroc": 0.9459624671434684,
+  "n_anomalous_images": 133,
+  "n_images": 256,
+  "oracle_threshold": 3.0303266048431396,
+  "pixel_auprc": 0.842423922166694,
+  "pixel_auroc": 0.989337686835052,
+  "seed": 0
+}

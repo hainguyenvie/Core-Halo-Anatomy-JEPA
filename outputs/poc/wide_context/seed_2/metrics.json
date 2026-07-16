@@ -1,0 +1,21 @@
+{
+  "calibrated_threshold": 2.5676565170288086,
+  "checkpoint": "outputs/poc/wide_context/seed_2/best.pt",
+  "device": "cuda",
+  "dice_by_lesion_size": {
+    "large": 0.8225190246030025,
+    "medium": 0.7633449300073202,
+    "small": 0.5046396233724142
+  },
+  "dice_calibrated": 0.7263826206685535,
+  "dice_oracle": 0.7554895759375202,
+  "experiment": "wide_context",
+  "healthy_pixel_fpr": 0.006374567148047811,
+  "image_auroc": 0.960755547405098,
+  "n_anomalous_images": 133,
+  "n_images": 256,
+  "oracle_threshold": 3.2997448444366455,
+  "pixel_auprc": 0.827955691481357,
+  "pixel_auroc": 0.9860054638503404,
+  "seed": 2
+}

@@ -1,0 +1,342 @@
+{
+  "aggregate": {
+    "core_halo": {
+      "dice_by_lesion_size.large.mean": 0.8323381316840973,
+      "dice_by_lesion_size.large.std": 0.014508966132052298,
+      "dice_by_lesion_size.medium.mean": 0.7540275331247033,
+      "dice_by_lesion_size.medium.std": 0.019403916982311177,
+      "dice_by_lesion_size.small.mean": 0.5151528780194387,
+      "dice_by_lesion_size.small.std": 0.011416127307582858,
+      "dice_calibrated.mean": 0.7322675361454513,
+      "dice_calibrated.std": 0.003763256444782404,
+      "healthy_pixel_fpr.mean": 0.006278245816004859,
+      "healthy_pixel_fpr.std": 0.00024112223090669697,
+      "image_auroc.mean": 0.9559794680863299,
+      "image_auroc.std": 0.0075720053302849285,
+      "pixel_auprc.mean": 0.838955630293302,
+      "pixel_auprc.std": 0.0064883119425164695,
+      "pixel_auroc.mean": 0.9878638687801015,
+      "pixel_auroc.std": 0.001392471524094565
+    },
+    "core_halo_anatomy": {
+      "dice_by_lesion_size.large.mean": 0.8322735133469713,
+      "dice_by_lesion_size.large.std": 0.01490859898212448,
+      "dice_by_lesion_size.medium.mean": 0.7540370075792353,
+      "dice_by_lesion_size.medium.std": 0.019560568903612394,
+      "dice_by_lesion_size.small.mean": 0.5167162657193537,
+      "dice_by_lesion_size.small.std": 0.01061200156575834,
+      "dice_calibrated.mean": 0.7324443437020377,
+      "dice_calibrated.std": 0.0036328762696441067,
+      "healthy_pixel_fpr.mean": 0.0062739078794975004,
+      "healthy_pixel_fpr.std": 0.0002378485236854407,
+      "image_auroc.mean": 0.9556940238406065,
+      "image_auroc.std": 0.007220123918089922,
+      "pixel_auprc.mean": 0.8387884012602687,
+      "pixel_auprc.std": 0.00662587280083355,
+      "pixel_auroc.mean": 0.9878462692830005,
+      "pixel_auroc.std": 0.0014203802611863015
+    },
+    "local_context": {
+      "dice_by_lesion_size.large.mean": 0.8252131563333548,
+      "dice_by_lesion_size.large.std": 0.013622383431879449,
+      "dice_by_lesion_size.medium.mean": 0.7559507700816258,
+      "dice_by_lesion_size.medium.std": 0.01832096593195279,
+      "dice_by_lesion_size.small.mean": 0.5064543189209548,
+      "dice_by_lesion_size.small.std": 0.004654317788104455,
+      "dice_calibrated.mean": 0.7292099662798405,
+      "dice_calibrated.std": 0.006222941726342946,
+      "healthy_pixel_fpr.mean": 0.0061198395357378145,
+      "healthy_pixel_fpr.std": 0.00018116931521502177,
+      "image_auroc.mean": 0.9535333025731839,
+      "image_auroc.std": 0.0071611278304794706,
+      "pixel_auprc.mean": 0.8300910704008375,
+      "pixel_auprc.std": 0.008981289623044437,
+      "pixel_auroc.mean": 0.98648193726096,
+      "pixel_auroc.std": 0.0017200693679890802
+    },
+    "wide_context": {
+      "dice_by_lesion_size.large.mean": 0.8326625956766152,
+      "dice_by_lesion_size.large.std": 0.015501487279462519,
+      "dice_by_lesion_size.medium.mean": 0.7548797383020571,
+      "dice_by_lesion_size.medium.std": 0.020176474462553454,
+      "dice_by_lesion_size.small.mean": 0.5152732125488245,
+      "dice_by_lesion_size.small.std": 0.007659715578180961,
+      "dice_calibrated.mean": 0.7325229135319332,
+      "dice_calibrated.std": 0.0044497239343306285,
+      "healthy_pixel_fpr.mean": 0.006297626955565884,
+      "healthy_pixel_fpr.std": 0.00025662583365779174,
+      "image_auroc.mean": 0.9558160750463092,
+      "image_auroc.std": 0.008116538863905162,
+      "pixel_auprc.mean": 0.8384398310805191,
+      "pixel_auprc.std": 0.007453520932244862,
+      "pixel_auroc.mean": 0.9878905452363979,
+      "pixel_auroc.std": 0.0013833410260067401
+    }
+  },
+  "hypothesis_checks": {
+    "Adding a halo improves pixel AUPRC over the same wide context": true,
+    "Contralateral anatomy improves pixel AUPRC over Core-Halo alone": false,
+    "Full model improves small-lesion Dice over local context": true,
+    "Wider target-free context improves pixel AUPRC over local context": true
+  },
+  "runs": [
+    {
+      "calibrated_threshold": 2.489208221435547,
+      "checkpoint": "outputs/poc/local_context/seed_0/best.pt",
+      "device": "cuda",
+      "dice_by_lesion_size": {
+        "large": 0.8203319442353727,
+        "medium": 0.7761660003248689,
+        "small": 0.5096187014360153
+      },
+      "dice_calibrated": 0.7357409713574097,
+      "dice_oracle": 0.7665383364060296,
+      "experiment": "local_context",
+      "healthy_pixel_fpr": 0.00586546417538544,
+      "image_auroc": 0.9434562014793081,
+      "n_anomalous_images": 133,
+      "n_images": 256,
+      "oracle_threshold": 2.9922983646392822,
+      "pixel_auprc": 0.8400001683211528,
+      "pixel_auroc": 0.9883981405111784,
+      "seed": 0
+    },
+    {
+      "calibrated_threshold": 2.584247589111328,
+      "checkpoint": "outputs/poc/local_context/seed_1/best.pt",
+      "device": "cuda",
+      "dice_by_lesion_size": {
+        "large": 0.8437932890757963,
+        "medium": 0.7318076628532356,
+        "small": 0.5098705297663753
+      },
+      "dice_calibrated": 0.7310529845741114,
+      "dice_oracle": 0.7582787602407403,
+      "experiment": "local_context",
+      "healthy_pixel_fpr": 0.0062735482113217824,
+      "image_auroc": 0.9594445803768045,
+      "n_anomalous_images": 134,
+      "n_images": 256,
+      "oracle_threshold": 3.2580220699310303,
+      "pixel_auprc": 0.8320178497095325,
+      "pixel_auroc": 0.9868215573987613,
+      "seed": 1
+    },
+    {
+      "calibrated_threshold": 2.6109778881073,
+      "checkpoint": "outputs/poc/local_context/seed_2/best.pt",
+      "device": "cuda",
+      "dice_by_lesion_size": {
+        "large": 0.8115142356888954,
+        "medium": 0.7598786470667727,
+        "small": 0.4998737255604737
+      },
+      "dice_calibrated": 0.7208359429080001,
+      "dice_oracle": 0.7504953474956735,
+      "experiment": "local_context",
+      "healthy_pixel_fpr": 0.006220506220506221,
+      "image_auroc": 0.9576991258634391,
+      "n_anomalous_images": 133,
+      "n_images": 256,
+      "oracle_threshold": 3.1628165245056152,
+      "pixel_auprc": 0.8182551931718272,
+      "pixel_auroc": 0.9842261138729406,
+      "seed": 2
+    },
+    {
+      "calibrated_threshold": 2.5083677768707275,
+      "checkpoint": "outputs/poc/wide_context/seed_0/best.pt",
+      "device": "cuda",
+      "dice_by_lesion_size": {
+        "large": 0.8209036017834921,
+        "medium": 0.7742456716335077,
+        "small": 0.518800607788522
+      },
+      "dice_calibrated": 0.7367858161422188,
+      "dice_oracle": 0.7646466457905119,
+      "experiment": "wide_context",
+      "healthy_pixel_fpr": 0.005951999924133042,
+      "image_auroc": 0.9443731279418057,
+      "n_anomalous_images": 133,
+      "n_images": 256,
+      "oracle_threshold": 3.1052041053771973,
+      "pixel_auprc": 0.8427360816161403,
+      "pixel_auroc": 0.9892861860478386,
+      "seed": 0
+    },
+    {
+      "calibrated_threshold": 2.4607512950897217,
+      "checkpoint": "outputs/poc/wide_context/seed_1/best.pt",
+      "device": "cuda",
+      "dice_by_lesion_size": {
+        "large": 0.8545651606433509,
+        "medium": 0.7270486132653438,
+        "small": 0.5223794064855373
+      },
+      "dice_calibrated": 0.7344003037850274,
+      "dice_oracle": 0.7671243876977434,
+      "experiment": "wide_context",
+      "healthy_pixel_fpr": 0.006566313794516799,
+      "image_auroc": 0.9623195497920236,
+      "n_anomalous_images": 134,
+      "n_images": 256,
+      "oracle_threshold": 3.2336409091949463,
+      "pixel_auprc": 0.8446277201440602,
+      "pixel_auroc": 0.9883799858110143,
+      "seed": 1
+    },
+    {
+      "calibrated_threshold": 2.5676565170288086,
+      "checkpoint": "outputs/poc/wide_context/seed_2/best.pt",
+      "device": "cuda",
+      "dice_by_lesion_size": {
+        "large": 0.8225190246030025,
+        "medium": 0.7633449300073202,
+        "small": 0.5046396233724142
+      },
+      "dice_calibrated": 0.7263826206685535,
+      "dice_oracle": 0.7554895759375202,
+      "experiment": "wide_context",
+      "healthy_pixel_fpr": 0.006374567148047811,
+      "image_auroc": 0.960755547405098,
+      "n_anomalous_images": 133,
+      "n_images": 256,
+      "oracle_threshold": 3.2997448444366455,
+      "pixel_auprc": 0.827955691481357,
+      "pixel_auroc": 0.9860054638503404,
+      "seed": 2
+    },
+    {
+      "calibrated_threshold": 2.5069525241851807,
+      "checkpoint": "outputs/poc/core_halo/seed_0/best.pt",
+      "device": "cuda",
+      "dice_by_lesion_size": {
+        "large": 0.8203060374702525,
+        "medium": 0.7741654702134988,
+        "small": 0.5228338211627722
+      },
+      "dice_calibrated": 0.7362873455434615,
+      "dice_oracle": 0.764257362268629,
+      "experiment": "core_halo",
+      "healthy_pixel_fpr": 0.00596859582115313,
+      "image_auroc": 0.9458402102818021,
+      "n_anomalous_images": 133,
+      "n_images": 256,
+      "oracle_threshold": 3.0524423122406006,
+      "pixel_auprc": 0.8426590766406339,
+      "pixel_auroc": 0.9893406055301466,
+      "seed": 0
+    },
+    {
+      "calibrated_threshold": 2.4733691215515137,
+      "checkpoint": "outputs/poc/core_halo/seed_1/best.pt",
+      "device": "cuda",
+      "dice_by_lesion_size": {
+        "large": 0.8527481594410495,
+        "medium": 0.7278149711531772,
+        "small": 0.5236105477047287
+      },
+      "dice_calibrated": 0.7332782270676019,
+      "dice_oracle": 0.7670081994802956,
+      "experiment": "core_halo",
+      "healthy_pixel_fpr": 0.006556754102004309,
+      "image_auroc": 0.9640322975287496,
+      "n_anomalous_images": 134,
+      "n_images": 256,
+      "oracle_threshold": 3.2862799167633057,
+      "pixel_auprc": 0.8443744402265979,
+      "pixel_auroc": 0.9882537299235814,
+      "seed": 1
+    },
+    {
+      "calibrated_threshold": 2.6797285079956055,
+      "checkpoint": "outputs/poc/core_halo/seed_2/best.pt",
+      "device": "cuda",
+      "dice_by_lesion_size": {
+        "large": 0.8239601981409899,
+        "medium": 0.7601021580074339,
+        "small": 0.4990142651908149
+      },
+      "dice_calibrated": 0.7272370358252903,
+      "dice_oracle": 0.7576459151434529,
+      "experiment": "core_halo",
+      "healthy_pixel_fpr": 0.006309387524857138,
+      "image_auroc": 0.9580658964484382,
+      "n_anomalous_images": 133,
+      "n_images": 256,
+      "oracle_threshold": 3.4182889461517334,
+      "pixel_auprc": 0.8298333740126742,
+      "pixel_auroc": 0.9859972708865761,
+      "seed": 2
+    },
+    {
+      "calibrated_threshold": 2.5053703784942627,
+      "checkpoint": "outputs/poc/core_halo_anatomy/seed_0/best.pt",
+      "device": "cuda",
+      "dice_by_lesion_size": {
+        "large": 0.8199944537313374,
+        "medium": 0.7741883600923166,
+        "small": 0.524194045047489
+      },
+      "dice_calibrated": 0.7361284270770254,
+      "dice_oracle": 0.763985372286192,
+      "experiment": "core_halo_anatomy",
+      "healthy_pixel_fpr": 0.005976893769663175,
+      "image_auroc": 0.9459624671434684,
+      "n_anomalous_images": 133,
+      "n_images": 256,
+      "oracle_threshold": 3.0303266048431396,
+      "pixel_auprc": 0.842423922166694,
+      "pixel_auroc": 0.989337686835052,
+      "seed": 0
+    },
+    {
+      "calibrated_threshold": 2.4753684997558594,
+      "checkpoint": "outputs/poc/core_halo_anatomy/seed_1/best.pt",
+      "device": "cuda",
+      "dice_by_lesion_size": {
+        "large": 0.853256156259238,
+        "medium": 0.7275489570986647,
+        "small": 0.5242460928450215
+      },
+      "dice_calibrated": 0.7337034844100857,
+      "dice_oracle": 0.7669698150212919,
+      "experiment": "core_halo_anatomy",
+      "healthy_pixel_fpr": 0.006559144025132432,
+      "image_auroc": 0.9632370932224126,
+      "n_anomalous_images": 134,
+      "n_images": 256,
+      "oracle_threshold": 3.2765865325927734,
+      "pixel_auprc": 0.8444499807754923,
+      "pixel_auroc": 0.9882658825198216,
+      "seed": 1
+    },
+    {
+      "calibrated_threshold": 2.6655783653259277,
+      "checkpoint": "outputs/poc/core_halo_anatomy/seed_2/best.pt",
+      "device": "cuda",
+      "dice_by_lesion_size": {
+        "large": 0.8235699300503387,
+        "medium": 0.7603737055467245,
+        "small": 0.5017086592655503
+      },
+      "dice_calibrated": 0.7275011196190019,
+      "dice_oracle": 0.7572049156169509,
+      "experiment": "core_halo_anatomy",
+      "healthy_pixel_fpr": 0.006285685843696894,
+      "image_auroc": 0.9578825111559386,
+      "n_anomalous_images": 133,
+      "n_images": 256,
+      "oracle_threshold": 3.4030935764312744,
+      "pixel_auprc": 0.8294913008386199,
+      "pixel_auroc": 0.9859352384941276,
+      "seed": 2
+    }
+  ],
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "smoke": false
+}
