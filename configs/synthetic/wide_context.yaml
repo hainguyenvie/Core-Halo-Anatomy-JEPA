@@ -1,0 +1,33 @@
+name: wide_context
+seed: 0
+output_dir: outputs/wide_context
+
+data:
+  kind: synthetic
+  image_size: 128
+  batch_size: 16
+  num_workers: 0
+  train_samples: 512
+  calibration_samples: 128
+  test_samples: 256
+  test_anomaly_fraction: 0.5
+
+model:
+  patch_size: 8
+  embed_dim: 96
+  encoder_depth: 3
+  predictor_depth: 2
+  num_heads: 4
+  core_size: 2
+  halo_size: 0
+  context_radius: 5
+  include_contralateral: false
+  contralateral_size: 2
+
+train:
+  epochs: 20
+  targets_per_image: 2
+
+score:
+  geometry_stride: 1
+  geometry_batch_size: 64
